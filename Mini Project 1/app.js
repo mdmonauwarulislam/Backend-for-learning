@@ -5,11 +5,17 @@ const postModel = require("./model/post");
 const cookieparser = require("cookie-parser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const upload = require("./config/multerconfig");
+const path = require("path");
+
 
 app.set("view engine", "ejs");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(cookieparser());
+
+
 
 app.get("/", function (req, res) {
   res.render("index");
@@ -84,6 +90,17 @@ app.post("/register", async function (req, res) {
 
     });
   });
+});
+
+// Multer 
+app.get("/profile/upload", function (req, res) {
+  res.render("uploadfile");
+});
+app.post("/upload", isLoggedin, upload.single("image"), async function (req, res) {
+  let user = await userModel.findOne({email: req.user.email});
+  user.profilepic = req.file.filename;
+  await user.save();
+  res.redirect("/profile");
 });
 
 app.post("/login", async function (req, res) {
